@@ -235,7 +235,7 @@ void main() {
   vec2 dir = centre - vTexCoord;
   float tOffset = 0.05 * sin(t * 3.14);
   float rD = getOffsetStrength(t + tOffset, dir);
-  float gD = getOffsetStrength(t, dir);
+  float gD = getOffsetStrength(t          , dir);
   float bD = getOffsetStrength(t - tOffset, dir);
   
   dir = normalize(dir);
@@ -246,42 +246,37 @@ void main() {
   
   float shading = gD * 8.;
   
-  gl_FragColor = vec4(r, g, b, 1.);
-  gl_FragColor.rgb += shading;
-  
+  gl_FragColor      = vec4(r, g, b, 1.);
+  gl_FragColor.rgb +=
+      shading ;
 }
-
-
-
-
-
-
-  
-  
 `;
 
 function setup() {
-    myCanvas = createCanvas(
-        window.innerWidth / 2,
-        window.innerHeight / 2, "WEBGL"
-    );
-    myCanvas.position(0, 0)
+    myCanvas = createCanvas(window.innerWidth / 2, window.innerHeight / 2, "WEBGL");
+    myCanvas.position(0, 0);
 
 
     background(0);
     REALISTIC_CRT_EFFECT_SHADER = createFilterShader(REALISTIC_CRT_EFFECT_SOURCE_CODE);
-    SHOCK_WAVE_SHADER = createFilterShader(SHOCK_WAVE_SHADER_SOURCE_CODE)
+    SHOCK_WAVE_SHADER = createFilterShader(SHOCK_WAVE_SHADER_SOURCE_CODE);
+
+
     var x = 0;
     for (var i = 0; i <= width / mySymbolSize; i++) {
         var stream = new Stream();
         stream.generateMySymbols(x, random(-2000, 0));
         streams.push(stream);
-        x += mySymbolSize
+        x += mySymbolSize;
     }
 
-    textFont('Consolas');
+    textFont("Consolas");
     textSize(mySymbolSize);
 }
+
+
+
+
 
 function draw() {
     background(0, 150);
@@ -289,33 +284,37 @@ function draw() {
         stream.render();
     });
 
-    REALISTIC_CRT_EFFECT_SHADER.setUniform("time", millis())
+
+    REALISTIC_CRT_EFFECT_SHADER.setUniform("time", millis());
     REALISTIC_CRT_EFFECT_SHADER.setUniform("resolution", [width, height]);
     filter(REALISTIC_CRT_EFFECT_SHADER);
 
 
-
-
     SHOCK_WAVE_SHADER.setUniform("t", pow(t, 1 / 1.5));
     SHOCK_WAVE_SHADER.setUniform("aspect", [1, width / height]);
-
     if (t < 1) {
         t += 0.01;
     }
-    filter(SHOCK_WAVE_SHADER)
-
+    filter(SHOCK_WAVE_SHADER);
 }
+
+
+
+
 
 function MySymbol(x, y, speed, first, opacity) {
     this.x = x;
     this.y = y;
     this.value;
 
+
     this.speed = speed;
     this.first = first;
     this.opacity = opacity;
 
+
     this.switchInterval = round(random(2, 25));
+
 
     this.setToRandomMySymbol = function () {
         var charType = round(random(0, 5));
@@ -332,16 +331,22 @@ function MySymbol(x, y, speed, first, opacity) {
         }
     }
 
+
     this.rain = function () {
         this.y = (this.y >= height) ? 0 : this.y += this.speed;
     }
 
 }
 
+
+
+
+
 function Stream() {
     this.mySymbols = [];
     this.totalMySymbols = round(random(5, 35));
     this.speed = random(5, 22);
+
 
     this.generateMySymbols = function (x, y) {
         var opacity = 255;
@@ -362,6 +367,7 @@ function Stream() {
         }
     }
 
+
     this.render = function () {
         this.mySymbols.forEach(function (mySymbol) {
             if (mySymbol.first) {
@@ -377,10 +383,17 @@ function Stream() {
 }
 
 
+
+
+
 function mouseReleased() {
     setCentreToMouse();
     t = 0;
 }
+
+
+
+
 
 function setCentreToMouse() {
     SHOCK_WAVE_SHADER.setUniform("centre", [mouseX / width, mouseY / height]);

@@ -1,17 +1,18 @@
 var streams = [];
 var fadeInterval = 1.6;
 var mySymbolSize = 14;
-let warp;
-let capture;
-let myCanvas;
-let t =1;
-let warpSrc = `#version 100
+
+
+var myCanvas;
+var t = 1;
+var REALISTIC_CRT_EFFECT_SHADER;
+var REALISTIC_CRT_EFFECT_SOURCE_CODE = `#version 100
 precision highp float;
 
-uniform sampler2D tex0;
-varying vec2 vTexCoord;
-uniform float time;
-uniform vec2 resolution;
+uniform sampler2D tex0      ;
+varying vec2      vTexCoord ;
+uniform float     time      ;
+uniform vec2      resolution;
 
 const float scan_line_amount  = 1.0;
 const float warp_amount  = 0.1;
@@ -171,8 +172,8 @@ void main() {
 	gl_FragColor.a = 1.0;
 }
 `;
-let shockWaveShader;
-let shockWaveShaderSrc = `
+var SHOCK_WAVE_SHADER;
+var SHOCK_WAVE_SHADER_SOURCE_CODE = `
 #version 100
 
 precision highp float;
@@ -258,157 +259,136 @@ void main() {
   
   
 `;
-let defaultColor1 = { r: 140, g: 255, b: 170 };
-let defaultColor2 = { r: 0, g: 255, b: 70};
-let color1 ;
-let color2 ;
-function setup() {
-  myCanvas = createCanvas(
-    window.innerWidth / 2,
-    window.innerHeight / 2, "WEBGL"
-  );
-  myCanvas.position(0,0)
-  // capture = createCapture(VIDEO);
-  // capture.hide();
-  defaultColor1 = color(140,255,170);
-  defaultColor2 = color(0,255,70)
-  color1 = defaultColor1;
-  color2 = defaultColor2;
-  background(0);
-  warp = createFilterShader(warpSrc);
-  shockWaveShader = createFilterShader(shockWaveShaderSrc)
-  var x = 0;
-  for (var i = 0; i <= width / mySymbolSize; i++) {
-    var stream = new Stream();
-    stream.generateMySymbols(x, random(-2000, 0));
-    streams.push(stream);
-    x += mySymbolSize
-  }
 
-  textFont('Consolas');
-  textSize(mySymbolSize);
+function setup() {
+    myCanvas = createCanvas(
+        window.innerWidth / 2,
+        window.innerHeight / 2, "WEBGL"
+    );
+    myCanvas.position(0, 0)
+
+
+    background(0);
+    REALISTIC_CRT_EFFECT_SHADER = createFilterShader(REALISTIC_CRT_EFFECT_SOURCE_CODE);
+    SHOCK_WAVE_SHADER = createFilterShader(SHOCK_WAVE_SHADER_SOURCE_CODE)
+    var x = 0;
+    for (var i = 0; i <= width / mySymbolSize; i++) {
+        var stream = new Stream();
+        stream.generateMySymbols(x, random(-2000, 0));
+        streams.push(stream);
+        x += mySymbolSize
+    }
+
+    textFont('Consolas');
+    textSize(mySymbolSize);
 }
 
 function draw() {
-  background(0, 150);
-  streams.forEach(function(stream) {
-    stream.render();
-  });
-  // console.log(streams.length)
-  warp.setUniform("time", millis())
-  warp.setUniform("resolution", [width, height]);
-  filter(warp);
+    background(0, 150);
+    streams.forEach(function (stream) {
+        stream.render();
+    });
 
-  // console.log(mouseX)
+    REALISTIC_CRT_EFFECT_SHADER.setUniform("time", millis())
+    REALISTIC_CRT_EFFECT_SHADER.setUniform("resolution", [width, height]);
+    filter(REALISTIC_CRT_EFFECT_SHADER);
 
-  // shockWaveShader.setUniform("image", graphics);
-  shockWaveShader.setUniform("t", pow(t, 1/1.5));
-  shockWaveShader.setUniform("aspect", [1, width/height]);
-  
-  if(t < 1) {
-    t += 0.01;
-  }
-  filter(shockWaveShader)
-  // clear();
-  // rect(-width/2, -height/2, width, height);
+
+
+
+    SHOCK_WAVE_SHADER.setUniform("t", pow(t, 1 / 1.5));
+    SHOCK_WAVE_SHADER.setUniform("aspect", [1, width / height]);
+
+    if (t < 1) {
+        t += 0.01;
+    }
+    filter(SHOCK_WAVE_SHADER)
+
 }
 
 function MySymbol(x, y, speed, first, opacity) {
-  this.x = x;
-  this.y = y;
-  this.value;
+    this.x = x;
+    this.y = y;
+    this.value;
 
-  this.speed = speed;
-  this.first = first;
-  this.opacity = opacity;
+    this.speed = speed;
+    this.first = first;
+    this.opacity = opacity;
 
-  this.switchInterval = round(random(2, 25));
+    this.switchInterval = round(random(2, 25));
 
-  this.setToRandomMySymbol = function() {
-    var charType = round(random(0, 5));
-    if (frameCount % this.switchInterval == 0) {
-      if (charType > 1) {
-        // set it to Katakana
-        this.value = String.fromCharCode(
-          0x30A0 + floor(random(0, 97))
-        );
-      } else {
-        // set it to numeric
-        this.value = floor(random(0,10));
-      }
+    this.setToRandomMySymbol = function () {
+        var charType = round(random(0, 5));
+        if (frameCount % this.switchInterval == 0) {
+            if (charType > 1) {
+                // set it to Katakana
+                this.value = String.fromCharCode(
+                    0x30A0 + floor(random(0, 97))
+                );
+            } else {
+                // set it to numeric
+                this.value = floor(random(0, 10));
+            }
+        }
     }
-  }
 
-  this.rain = function() {
-    this.y = (this.y >= height) ? 0 : this.y += this.speed;
-  }
+    this.rain = function () {
+        this.y = (this.y >= height) ? 0 : this.y += this.speed;
+    }
 
 }
 
 function Stream() {
-  this.mySymbols = [];
-  this.totalMySymbols = round(random(5, 35));
-  this.speed = random(5, 22);
+    this.mySymbols = [];
+    this.totalMySymbols = round(random(5, 35));
+    this.speed = random(5, 22);
 
-  this.generateMySymbols = function(x, y) {
-    var opacity = 255;
-    var first = round(random(0, 4)) == 1;
-    for (var i =0; i <= this.totalMySymbols; i++) {
-      mySymbol = new MySymbol(
-        x,
-        y,
-        this.speed,
-        first,
-        opacity
-      );
-      mySymbol.setToRandomMySymbol();
-      this.mySymbols.push(mySymbol);
-      opacity -= (255 / this.totalMySymbols) / fadeInterval;
-      y -= mySymbolSize;
-      first = false;
+    this.generateMySymbols = function (x, y) {
+        var opacity = 255;
+        var first = round(random(0, 4)) == 1;
+        for (var i = 0; i <= this.totalMySymbols; i++) {
+            mySymbol = new MySymbol(
+                x,
+                y,
+                this.speed,
+                first,
+                opacity
+            );
+            mySymbol.setToRandomMySymbol();
+            this.mySymbols.push(mySymbol);
+            opacity -= (255 / this.totalMySymbols) / fadeInterval;
+            y -= mySymbolSize;
+            first = false;
+        }
     }
-  }
 
-  this.render = function() {
-    this.mySymbols.forEach(function(mySymbol) {
-      if (mySymbol.first) {
-        fill(140,255,170, mySymbol.opacity);
-      } else {
-        fill(0,255,70, mySymbol.opacity);
-      }
-      text(mySymbol.value, mySymbol.x, mySymbol.y);
-      mySymbol.rain();
-      mySymbol.setToRandomMySymbol();
-    });
-  }
+    this.render = function () {
+        this.mySymbols.forEach(function (mySymbol) {
+            if (mySymbol.first) {
+                fill(140, 255, 170, mySymbol.opacity);
+            } else {
+                fill(0, 255, 70, mySymbol.opacity);
+            }
+            text(mySymbol.value, mySymbol.x, mySymbol.y);
+            mySymbol.rain();
+            mySymbol.setToRandomMySymbol();
+        });
+    }
 }
 
 
 function mouseReleased() {
-  setCentreToMouse();
-  t = 0;  
+    setCentreToMouse();
+    t = 0;
 }
 
 function setCentreToMouse() {
-  shockWaveShader.setUniform("centre", [mouseX/width, mouseY/height]);
+    SHOCK_WAVE_SHADER.setUniform("centre", [mouseX / width, mouseY / height]);
 }
 
-function mouseMoved()
-{
-  // color1.g = mouseX / window.innerWidth * 255;
-  // color2.g = mouseX / window.innerWidth * 255;
-  // noLoop();
-  // myCanvas.position(mouseX,mouseY);
-  // loop();
-  console.log(winMouseX,winMouseY)
-}
 
-function mouseClicked()
-{
-  // color1 = defaultColor1;
-  // color2 = defaultColor2;
-  // myCanvas.position(winMouseX,winMouseY);
-}
+
+
 
 //https://godotshaders.com/shader/realistic-crt-shader/
 //https://github.com/emilyxxie/green_rain

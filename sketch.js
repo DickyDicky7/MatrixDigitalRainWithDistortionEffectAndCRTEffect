@@ -406,3 +406,27 @@ function setCentreToMouse() {
 //https://godotshaders.com/shader/realistic-crt-shader/
 //https://github.com/emilyxxie/green_rain
 //https://editor.p5js.org/BarneyCodes/sketches/ELbA93Ugb
+
+
+// var video;
+// video = createVideo(
+//     'https://upload.wikimedia.org/wikipedia/commons/d/d2/DiagonalCrosswalkYongeDundas.webm'
+//   );
+//   video.volume(0);
+//   video.hide();
+//   video.loop();
+
+// background(255);
+//   push();
+//   imageMode(CENTER);
+//   image(video, 0, 0, width, height, 0, 0, video.width, video.height, COVER);
+//   pop();
+
+// var img;
+// function preload()
+// {
+//     img = loadImage("/pexels-wojciech-kumpicki-1084687-2071882.jpg");
+// }
+// img = loadImage();
+// createCanvas(img.width, img.height);
+// image(img, 0, 0, width, height);
